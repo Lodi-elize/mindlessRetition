@@ -67,6 +67,23 @@ src/
 └─ shared/          # shared types and step helpers
 ```
 
+## Releasing
+
+Releases are built and published automatically by GitHub Actions ([`.github/workflows/release.yml`](.github/workflows/release.yml)) whenever a `v*.*.*` tag is pushed:
+
+1. Bump `version` in [`package.json`](package.json) — the extension manifest reads it from there — and update [`CHANGELOG.md`](CHANGELOG.md).
+2. Commit the changes and push them to `main`.
+3. Create and push a matching tag:
+
+```shell
+$ git tag v0.1.0
+$ git push origin v0.1.0
+```
+
+The workflow checks that the tag matches `package.json`, builds the extension, packages it as `package/<name>-<version>.zip`, and creates a GitHub Release with the zip attached.
+
+To release manually instead, run `npm run zip` and upload `package/*.zip` to a Release created in the GitHub UI.
+
 ## Packing
 
 After the development of your extension run the command
