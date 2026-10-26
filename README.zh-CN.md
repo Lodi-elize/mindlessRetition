@@ -69,8 +69,7 @@ $ npm run dev
 ### 普通前端调试
 
 1. 打开 `http://localhost:5173/`
-2. 调试 popup 页面时，打开 `http://localhost:5173/popup.html`
-3. 调试 options 页面时，打开 `http://localhost:5173/options.html`
+2. 调试 options 页面时，打开 `http://localhost:5173/options.html`
 
 ## 项目结构
 
@@ -79,10 +78,8 @@ src/
 ├─ background/      # 后台 service worker
 ├─ contentScript/   # 页面自动化、元素拾取、标注
 ├─ sidepanel/       # 侧边栏界面、AI 客户端与工作流
-├─ popup/           # 工具栏弹窗
 ├─ options/         # 设置页
 ├─ devtools/        # DevTools 面板
-├─ newtab/          # 新标签页
 └─ shared/          # 共用类型与步骤工具
 ```
 

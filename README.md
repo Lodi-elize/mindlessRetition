@@ -70,8 +70,7 @@ Note: both `npm run dev` and `npm run build` write to `build/`, but the output d
 ### Plain frontend debugging
 
 1. Open `http://localhost:5173/`
-2. To debug the popup page, open `http://localhost:5173/popup.html`
-3. To debug the options page, open `http://localhost:5173/options.html`
+2. To debug the options page, open `http://localhost:5173/options.html`
 
 ## Project structure
 
@@ -80,10 +79,8 @@ src/
 ├─ background/      # background service worker
 ├─ contentScript/   # page automation, element picker, annotations
 ├─ sidepanel/       # side panel UI, AI client and workflow
-├─ popup/           # toolbar popup
 ├─ options/         # options page
 ├─ devtools/        # devtools panel
-├─ newtab/          # new tab page
 └─ shared/          # shared types and step helpers
 ```
 
