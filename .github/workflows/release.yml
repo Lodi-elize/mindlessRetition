@@ -49,12 +49,13 @@ jobs:
           set -euo pipefail
 
           version="$(node -p "require('./package.json').version")"
-          zip_file="$(ls package/*.zip | head -n 1)"
+          zip_file="$(ls "package/"*"-${version}.zip" | head -n 1)"
+          zip_name="$(basename "$zip_file")"
           dest="release/v${version}"
 
           # 切分支会重置工作区，先把产物挪到仓库外
           tmp="$(mktemp -d)"
-          cp "$zip_file" "$tmp/extension.zip"
+          cp "$zip_file" "$tmp/$zip_name"
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
