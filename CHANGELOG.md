@@ -9,6 +9,15 @@ Summary
   5. version timestamp follow the yyyy.MM.dd format
 ```
 
+## 0.1.0 [2026.10.26]
+
+- feat: AI-driven page automation from natural-language instructions
+- feat: element picker and annotations for precise AI context
+- feat: side panel workflow with configurable AI settings
+- feat: content script support for iframes and about:blank frames
+- docs: English and Chinese README with download links and release guide
+- ci: tag-driven release publishing with a dedicated archive branch
+
 ## 0.0.0 [2026.10.22]
 
 - feat: initial
