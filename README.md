@@ -82,6 +82,12 @@ $ git push origin v0.1.0
 
 The workflow checks that the tag matches `package.json`, builds the extension, packages it as `package/<name>-<version>.zip`, and creates a GitHub Release with the zip attached.
 
+Every package is also archived on the `release` branch under `release/v<version>/`, so older builds can be fetched without going through the Releases page:
+
+```shell
+$ git clone --branch release --single-branch https://github.com/Lodi-elize/mindlessRetition.git
+```
+
 To release manually instead, run `npm run zip` and upload `package/*.zip` to a Release created in the GitHub UI.
 
 ## Packing

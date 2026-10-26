@@ -81,6 +81,12 @@ $ git push origin v0.1.0
 
 工作流会先校验 tag 与 `package.json` 的版本是否一致，然后构建插件、打包为 `package/<名称>-<版本>.zip`，并创建附带该 zip 的 GitHub Release。
 
+每个版本的包同时会归档到独立的 `release` 分支，路径为 `release/v<版本>/`，不经过 Releases 页面也能拿到历史版本：
+
+```shell
+$ git clone --branch release --single-branch https://github.com/Lodi-elize/mindlessRetition.git
+```
+
 如果想手动发布，执行 `npm run zip`，再把 `package/*.zip` 上传到在 GitHub 页面手动创建的 Release 即可。
 
 ## 打包

@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
   release:
     name: Build and publish extension
@@ -39,6 +43,37 @@ jobs:
 
       - name: Package extension
         run: node src/zip.js
+
+      - name: Archive package to release branch
+        run: |
+          set -euo pipefail
+
+          version="$(node -p "require('./package.json').version")"
+          zip_file="$(ls package/*.zip | head -n 1)"
+          dest="release/v${version}"
+
+          # 切分支会重置工作区，先把产物挪到仓库外
+          tmp="$(mktemp -d)"
+          cp "$zip_file" "$tmp/extension.zip"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git ls-remote --exit-code --heads origin release >/dev/null 2>&1; then
+            # release 分支已存在：在最新提交上追加
+            git fetch --depth=1 origin release
+            git checkout -B release FETCH_HEAD
+          else
+            # 首次发布：创建孤立的 release 分支
+            git checkout --orphan release
+            git rm -rf . >/dev/null 2>&1 || true
+          fi
+
+          mkdir -p "$dest"
+          cp "$tmp/extension.zip" "$dest/"
+          git add "$dest"
+          git commit -m "release: v${version}"
+          git push origin release
 
       - name: Publish GitHub Release
         env:
