@@ -1,46 +1,71 @@
-# mindlessRetition
+# mindlessRepetition
+
+[English](README.md) · [简体中文](README.zh-CN.md)
 
 > This browser extension uses AI to parse conversation instructions, identify page elements, and automatically execute a series of operations on web pages.
-Instead of manually recording fixed steps, you can tell the AI what you want to do in plain language. It analyzes the current page, locates buttons and input boxes, and completes clicking, filling, querying and other interactive tasks automatically.
-It is designed to eliminate tedious repetitive web operations and improve your daily workflow efficiency.
+> Instead of manually recording fixed steps, you can tell the AI what you want to do in plain language. It analyzes the current page, locates buttons and input boxes, and completes clicking, filling, querying and other interactive tasks automatically.
+> It is designed to eliminate tedious repetitive web operations and improve your daily workflow efficiency.
+
+## Features
+
+- Turn natural-language instructions into concrete page actions with an AI model
+- Locate target elements on the current page, including content rendered inside iframes
+- Automatically click, fill, query and chain multiple steps
+- Pick and annotate elements to give the AI precise context
+- Run everything from the Chrome side panel
+
+## Requirements
+
+- Node.js >= 14
+- Chrome (Manifest V3)
 
 ## Installing
 
-1. Check if your `Node.js` version is >= **14**.
-2. Change or configurate the name of your extension on `src/manifest`.
-3. Run `npm install` to install the dependencies.
+1. Check that your `Node.js` version is >= **14**.
+2. Change or configure the extension name in [`src/manifest.ts`](src/manifest.ts).
+3. Run `npm install` (or `yarn`) to install the dependencies.
 
 ## Developing
 
-run the command
-
 ```shell
-$ cd my-react-ext
-
 $ npm run dev
 ```
 
 ### Chrome Extension Developer Mode
 
-1. set your Chrome browser 'Developer mode' up
-2. click 'Load unpacked', and select `my-react-ext/build` folder
+1. Enable **Developer mode** in your Chrome browser.
+2. Click **Load unpacked** and select the `build` folder.
 
-### 重新加载扩展（重要）
+### Reloading the extension (important)
 
-`build/` 就是「加载已解压的扩展程序」所指向的目录。每次 `npm run build`（或 `npm run dev` 重新输出）之后，Chrome 里已加载的扩展仍在用旧文件，必须：
+`build/` is the folder that "Load unpacked" points to. After every `npm run build` (or a fresh output from `npm run dev`), Chrome keeps using the old files, so you must:
 
-1. 打开 `chrome://extensions`，在 mindRepetition 卡片上点「重新加载」
-2. 回到目标网页刷新一次（已打开的页面不会自动获得新的内容脚本）
+1. Open `chrome://extensions` and click **Reload** on the mindRepetition card.
+2. Refresh the target web page once (already-open tabs do not pick up the new content script automatically).
 
-侧边栏提示「当前页面无法连接内容脚本」时，优先按上面两步处理。`chrome://`、扩展页、Chrome 应用商店等页面本身不允许注入脚本。
+If the side panel reports that it cannot connect to the content script, do the two steps above first. Pages such as `chrome://`, extension pages and the Chrome Web Store do not allow script injection at all.
 
-注意：`npm run dev` 和 `npm run build` 都会写入 `build/`，但内容不同（dev 版依赖正在运行的 Vite 服务）。开发时保持 dev 进程运行；想要一个不依赖 dev 服务的稳定版本时，先停掉 dev，再执行 `npm run build`，然后重新加载扩展。
+Note: both `npm run dev` and `npm run build` write to `build/`, but the output differs (the dev build depends on the running Vite server). Keep the dev process running while developing; for a stable build that does not depend on the dev server, stop dev first, then run `npm run build` and reload the extension.
 
-### Nomal FrontEnd Developer Mode
+### Plain frontend debugging
 
-1. access `http://0.0.0.0:3000/`
-2. when debugging popup page, open `http://0.0.0.0:3000//popup.html`
-3. when debugging options page, open `http://0.0.0.0:3000//options.html`
+1. Open `http://localhost:5173/`
+2. To debug the popup page, open `http://localhost:5173/popup.html`
+3. To debug the options page, open `http://localhost:5173/options.html`
+
+## Project structure
+
+```
+src/
+├─ background/      # background service worker
+├─ contentScript/   # page automation, element picker, annotations
+├─ sidepanel/       # side panel UI, AI client and workflow
+├─ popup/           # toolbar popup
+├─ options/         # options page
+├─ devtools/        # devtools panel
+├─ newtab/          # new tab page
+└─ shared/          # shared types and step helpers
+```
 
 ## Packing
 
@@ -50,7 +75,7 @@ After the development of your extension run the command
 $ npm run build
 ```
 
-Now, the content of `build` folder will be the extension ready to be submitted to the Chrome Web Store. Just take a look at the [official guide](https://developer.chrome.com/webstore/publish) to more infos about publishing.
+Now, the content of `build` folder will be the extension ready to be submitted to the Chrome Web Store. Just take a look at the [official guide](https://developer.chrome.com/webstore/publish) for more info about publishing.
 
 ---
 
