@@ -5,6 +5,26 @@
 > 本浏览器插件借助 AI 解析对话指令，识别页面元素，自动在网页上执行一系列操作。
 > 无需预先录制固定步骤，你可以用自然语言告知 AI 你的目标。它会分析当前页面、定位按钮与输入框，自动完成点击、填写、查询等交互任务。旨在消除枯燥重复的网页操作，提升日常工作流效率。
 
+## 下载
+
+| 位置 | 内容 |
+| --- | --- |
+| [最新版本](https://github.com/Lodi-elize/mindlessRetition/releases/latest) | **Assets** 中的 `mindRepetition-<版本>.zip` |
+| [所有版本](https://github.com/Lodi-elize/mindlessRetition/releases) | 全部已发布版本 |
+| [`release` 分支](https://github.com/Lodi-elize/mindlessRetition/tree/release) | 归档目录：每个 tag 对应 `release/v<版本>/mindRepetition-<版本>.zip` |
+
+不想打开 Releases 页面时，可以直接只拉归档分支：
+
+```shell
+$ git clone --branch release --single-branch https://github.com/Lodi-elize/mindlessRetition.git
+```
+
+### 安装下载的包
+
+1. 解压 zip
+2. 打开 `chrome://extensions`，开启「开发者模式」
+3. 点击「加载已解压的扩展程序」，选择解压后的文件夹
+
 ## 功能
 
 - 用 AI 把自然语言指令翻译成具体的页面操作
@@ -18,7 +38,7 @@
 - Node.js ≥ 14
 - Chrome（Manifest V3）
 
-## 安装
+## 从源码安装
 
 1. 检查你的 Node.js 版本是否 ≥ 14
 2. 在 [`src/manifest.ts`](src/manifest.ts) 中修改或配置插件名称
@@ -81,7 +101,7 @@ $ git push origin v0.1.0
 
 工作流会先校验 tag 与 `package.json` 的版本是否一致，然后构建插件、打包为 `package/<名称>-<版本>.zip`，并创建附带该 zip 的 GitHub Release。
 
-每个版本的包同时会归档到独立的 `release` 分支，路径为 `release/v<版本>/`，不经过 Releases 页面也能拿到历史版本：
+每个版本的包同时会归档到独立的 `release` 分支，路径为 `release/v<版本>/`，不经过 Releases 页面也能拿到历史版本。该分支是孤立分支（与 `main` 没有共同历史），构建产物不会撑大 `main`，也不影响它的 clone 速度：
 
 ```shell
 $ git clone --branch release --single-branch https://github.com/Lodi-elize/mindlessRetition.git
