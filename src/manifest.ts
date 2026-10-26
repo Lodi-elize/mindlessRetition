@@ -19,8 +19,6 @@ export default defineManifest({
     default_title: '打开 mindRepetition 侧边栏',
     default_icon: 'img/logo-128.png',
   },
-  options_page: 'options.html',
-  devtools_page: 'devtools.html',
   background: {
     service_worker: 'src/background/index.ts',
     type: 'module',
