@@ -37,6 +37,7 @@ export default defineManifest({
   side_panel: {
     default_path: 'sidepanel.html',
   },
-  permissions: ['sidePanel', 'storage', 'tabs'],
+  // scripting：页面在扩展加载/重载前打开时，侧边栏会补注入内容脚本
+  permissions: ['sidePanel', 'storage', 'tabs', 'scripting'],
   host_permissions: ['http://*/*', 'https://*/*'],
 })

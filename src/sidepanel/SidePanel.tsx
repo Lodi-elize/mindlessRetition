@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import type { FromContentMessage } from '../shared/types'
 import { AnnotationsTab } from './AnnotationsTab'
 import { AutomationTab } from './AutomationTab'
-import { queryActiveTab, sendToTab } from './messaging'
+import { ensureContentScript, queryActiveTab, sendToTab } from './messaging'
 import './SidePanel.css'
 
 type View = 'annotations' | 'automation'
@@ -15,22 +15,46 @@ export const SidePanel = () => {
   const [connectError, setConnectError] = useState('')
 
   const refresh = useCallback(async () => {
-    const tab = await queryActiveTab()
+    let tab: chrome.tabs.Tab | null
+    try {
+      tab = await queryActiveTab()
+    } catch (error) {
+      setActiveTab(null)
+      setConnected(false)
+      setConnectError((error as Error).message)
+      return
+    }
     setActiveTab(tab)
 
-    if (tab?.id == null) {
+    const tabId = tab?.id
+    if (tabId == null) {
       setConnected(false)
       setConnectError('没有找到可用的活动标签页')
       return
     }
 
+    const ping = () => sendToTab<{ ok?: boolean }>(tabId, { type: 'PING' })
+
     try {
-      const response = await sendToTab<{ ok?: boolean }>(tab.id, { type: 'PING' })
+      const response = await ping()
       setConnected(Boolean(response?.ok))
       setConnectError(response?.ok ? '' : '内容脚本无响应')
     } catch (error) {
+      // 内容脚本可能根本不在这个页面里（例如页面在扩展加载/重载前就已打开），
+      // 补注入后再探测一次，避免用户手动刷新页面。
+      if (await ensureContentScript(tabId)) {
+        try {
+          const response = await ping()
+          setConnected(Boolean(response?.ok))
+          setConnectError(response?.ok ? '' : '内容脚本无响应')
+          return
+        } catch {
+          /* 补注入后仍然失败，走下面的提示 */
+        }
+      }
+
       setConnected(false)
-      setConnectError((error as Error).message)
+      setConnectError(`${(error as Error).message}（已尝试重新注入内容脚本）`)
     }
   }, [])
 
@@ -134,8 +158,8 @@ export const SidePanel = () => {
         <div className="mr-banner">
           <p className="mr-banner-title">当前页面无法连接内容脚本</p>
           <p className="mr-banner-text">
-            常见原因：扩展重新构建后未在 chrome://extensions 重新加载；页面在扩展加载前就已打开；
-            当前是 chrome://、扩展页等受限页面（这类页面无法注入脚本）。
+            常见原因：扩展重新构建后未在 chrome://extensions 重新加载；页面在扩展加载前就已打开
+            （侧边栏已尝试自动补注入）；当前是 chrome://、扩展页等受限页面（这类页面无法注入脚本）。
           </p>
           {connectError && <p className="mr-banner-detail">错误信息：{connectError}</p>}
           <div className="mr-banner-actions">

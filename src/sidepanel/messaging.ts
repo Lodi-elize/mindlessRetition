@@ -39,7 +39,36 @@ export function setStorage(items: Record<string, unknown>): Promise<void> {
 }
 
 export function queryActiveTab(): Promise<chrome.tabs.Tab | null> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
+    // 直接访问 Vite 调试地址时没有扩展 API，抛错好让侧边栏给出明确提示
+    if (!chrome.tabs?.query) {
+      reject(new Error('当前页面没有扩展 API，请从浏览器工具栏打开侧边栏'))
+      return
+    }
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => resolve(tabs[0] ?? null))
   })
+}
+
+/**
+ * 页面在扩展加载/重载之前就已打开时，Chrome 不会补注入内容脚本。
+ * 这里按 manifest 声明的脚本文件手动注入一次，让侧边栏自愈（不需要用户刷新页面）。
+ */
+export async function ensureContentScript(tabId: number): Promise<boolean> {
+  const files = (chrome.runtime.getManifest().content_scripts ?? []).flatMap(
+    (entry) => entry.js ?? [],
+  )
+  if (!files.length || !chrome.scripting?.executeScript) return false
+
+  try {
+    await chrome.scripting.executeScript({ target: { tabId, allFrames: true }, files })
+    return true
+  } catch {
+    // 个别子 frame 受限时会整体失败，至少补上主 frame
+    try {
+      await chrome.scripting.executeScript({ target: { tabId }, files })
+      return true
+    } catch {
+      return false
+    }
+  }
 }

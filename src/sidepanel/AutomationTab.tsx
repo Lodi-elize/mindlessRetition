@@ -209,26 +209,28 @@ export function AutomationTab({ tabId, pageUrl, connected }: Props) {
     return () => window.clearTimeout(timer)
   }, [editFeedback])
 
-  // 切换页面 / 标签页时，停止旧页面的流程，并清空与新页面无关的日志和结果
-  const lastTargetRef = useRef<{ tabId: number | null; pageUrl: string } | null>(null)
+  // 只有切换标签页时才停止流程并清空状态。
+  // 同一标签页内的路由变化（SPA pushState、查询参数变化等）不中断执行，
+  // 否则跨路由的步骤会在第一次导航时被取消，只能重新连接后从头再来。
+  const lastTabRef = useRef<number | null>(null)
   useEffect(() => {
-    const previous = lastTargetRef.current
-    if (previous?.tabId != null && (previous.tabId !== tabId || previous.pageUrl !== pageUrl)) {
-      void sendToTab(previous.tabId, { type: 'CANCEL_AUTOMATION' }).catch(() => undefined)
-      void sendToTab(previous.tabId, { type: 'CANCEL_PICK' }).catch(() => undefined)
-      void sendToTab(previous.tabId, { type: 'CLEAR_PREVIEW' }).catch(() => undefined)
-    }
-    lastTargetRef.current = { tabId, pageUrl }
+    const previousTab = lastTabRef.current
+    if (previousTab != null && previousTab !== tabId) {
+      void sendToTab(previousTab, { type: 'CANCEL_AUTOMATION' }).catch(() => undefined)
+      void sendToTab(previousTab, { type: 'CANCEL_PICK' }).catch(() => undefined)
+      void sendToTab(previousTab, { type: 'CLEAR_PREVIEW' }).catch(() => undefined)
 
-    setRunning(false)
-    setPickingStepId(null)
-    setLogs([])
-    setResults([])
-    setError('')
-    setNotice('')
-    runIdRef.current = null
-    pickRequestRef.current = null
-  }, [pageUrl, tabId])
+      setRunning(false)
+      setPickingStepId(null)
+      setLogs([])
+      setResults([])
+      setError('')
+      setNotice('')
+      runIdRef.current = null
+      pickRequestRef.current = null
+    }
+    lastTabRef.current = tabId
+  }, [tabId])
 
   // 页面刷新后内容脚本重新连接，旧流程已经随旧脚本一起消失
   const previousConnectedRef = useRef(connected)
@@ -243,6 +245,7 @@ export function AutomationTab({ tabId, pageUrl, connected }: Props) {
   }, [connected])
 
   // 侧边栏关闭后重新打开时，接上仍在页面里执行的流程（至少可以停止它）
+  // 不依赖 pageUrl：同一页面内的路由变化不应重复触发这次探测
   useEffect(() => {
     if (tabId == null || !hydrated) return
     let alive = true
@@ -257,7 +260,7 @@ export function AutomationTab({ tabId, pageUrl, connected }: Props) {
     return () => {
       alive = false
     }
-  }, [tabId, pageUrl, hydrated])
+  }, [tabId, hydrated])
 
   // 组件卸载或切换标签页时，确保页面里不会留下无人控制的流程 / 点选器。
   // armed 用于跳过 React StrictMode 开发模式下的“挂载后立刻卸载并重挂载”。

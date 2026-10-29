@@ -40,12 +40,46 @@ async function cancellableSleep(ms: number) {
   }
 }
 
+const POLL_INTERVAL = 120
+const DEFAULT_SELECTOR_TIMEOUT = 8000
+
 function queryAll(selector: string): Element[] {
   if (!selector) throw new Error('选择器为空')
   try {
     return Array.from(document.querySelectorAll(selector))
   } catch {
     throw new Error(`选择器无效：${selector}`)
+  }
+}
+
+function selectorTimeout(step: AutomationStep): number {
+  const value = Number(step.timeout)
+  return Number.isFinite(value) && value >= 0 ? value : DEFAULT_SELECTOR_TIMEOUT
+}
+
+/**
+ * 等待选择器匹配到元素。
+ * 路由切换后目标节点通常要等新视图渲染完才出现，立即查询会直接失败；
+ * 这里轮询到超时为止，超时由 step.timeout 控制（0 表示只查一次）。
+ */
+async function waitForElements(
+  selector: string,
+  timeoutMs: number,
+  hooks: AutomationHooks,
+): Promise<Element[]> {
+  const deadline = Date.now() + timeoutMs
+  let announced = false
+
+  for (;;) {
+    const elements = queryAll(selector)
+    if (elements.length || timeoutMs <= 0 || cancelled) return elements
+    if (Date.now() >= deadline) return elements
+
+    if (!announced) {
+      hooks.log('info', `等待元素出现：${selector}（最多 ${timeoutMs}ms）`)
+      announced = true
+    }
+    await cancellableSleep(Math.min(POLL_INTERVAL, Math.max(1, deadline - Date.now())))
   }
 }
 
@@ -146,8 +180,12 @@ async function executeStep(
 
     case 'scroll': {
       if (selector) {
-        const elements = queryAll(selector)
-        if (!elements.length) throw new Error(`未找到元素：${selector}`)
+        const timeout = selectorTimeout(step)
+        const elements = await waitForElements(selector, timeout, hooks)
+        if (!elements.length) {
+          if (cancelled) return
+          throw new Error(`等待 ${timeout}ms 后仍未找到元素：${selector}`)
+        }
         elements[0].scrollIntoView({ behavior: 'smooth', block: 'center' })
         hooks.log('success', `已滚动到 ${selector}`)
       } else {
@@ -170,8 +208,12 @@ async function executeStep(
     }
 
     case 'click': {
-      const elements = queryAll(selector)
-      if (!elements.length) throw new Error(`未找到元素：${selector}`)
+      const timeout = selectorTimeout(step)
+      const elements = await waitForElements(selector, timeout, hooks)
+      if (!elements.length) {
+        if (cancelled) return
+        throw new Error(`等待 ${timeout}ms 后仍未找到元素：${selector}`)
+      }
       const targets = step.all ? elements : [elements[0]]
       for (const element of targets) {
         if (cancelled) return
@@ -193,8 +235,12 @@ async function executeStep(
     }
 
     case 'input': {
-      const elements = queryAll(selector)
-      if (!elements.length) throw new Error(`未找到元素：${selector}`)
+      const timeout = selectorTimeout(step)
+      const elements = await waitForElements(selector, timeout, hooks)
+      if (!elements.length) {
+        if (cancelled) return
+        throw new Error(`等待 ${timeout}ms 后仍未找到元素：${selector}`)
+      }
       const targets = step.all ? elements : [elements[0]]
       for (const element of targets) {
         if (cancelled) return
@@ -205,7 +251,8 @@ async function executeStep(
     }
 
     case 'extract': {
-      const elements = queryAll(selector)
+      const elements = await waitForElements(selector, selectorTimeout(step), hooks)
+      if (cancelled) return
       const attribute = step.value.trim().replace(/^@/, '')
       const values = elements.map((element) => extractValue(element, attribute))
       results.push({ stepIndex: index, selector, values })

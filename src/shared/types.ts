@@ -48,6 +48,8 @@ export interface AutomationStep {
   all?: boolean
   /** 步骤所在 frame：0 为顶层文档，其它值表示点选时所在的 iframe */
   frameId?: number
+  /** 等待目标元素出现的超时（毫秒，0 表示不等待）；留空使用默认值 */
+  timeout?: number
 }
 
 export interface ExtractResult {
